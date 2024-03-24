@@ -56,17 +56,8 @@ fi
 [ -f ~/.config/zsh/.fzf.zsh ] && source ~/.config/zsh/.fzf.zsh
 
 
-
-
-
-
-
-
-
-
-
-
-
+# zoxide
+source ~/.config/zsh/zoxide.sh
 
 
 # >>> conda initialize >>>
