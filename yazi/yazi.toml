@@ -7,6 +7,7 @@ sort_dir_first = true
 linemode = "size"
 show_hidden = false
 show_symlink = true
+show_hidden_files = true
 
 [preview]
 tab_size = 2
@@ -65,7 +66,7 @@ macro_workers = 10
 bizarre_retry = 5
 
 [plugins]
-preload = ["~/.config/yazi/plugins/ui.lua"]
+# preload = ["~/.config/yazi/plugins/ui.lua"]
 
 [log]
 enabled = false
