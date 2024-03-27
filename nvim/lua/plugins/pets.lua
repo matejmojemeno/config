@@ -1,8 +1,8 @@
 return {
-    "giusgad/pets.nvim",
-    dependencies = { "MunifTanjim/nui.nvim", "giusgad/hologram.nvim" },
+	"giusgad/pets.nvim",
+	dependencies = { "MunifTanjim/nui.nvim", "giusgad/hologram.nvim" },
 
-    config = function ()
-        require("pets").setup({})
-    end,
+	config = function()
+		require("pets").setup({})
+	end,
 }

@@ -5,7 +5,7 @@ return {
 		"williamboman/mason-lspconfig.nvim",
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 
-		{ "j-hui/fidget.nvim", opts = {} },
+		{ "j-hui/fidget.nvim" },
 	},
 	config = function()
 		vim.api.nvim_create_autocmd("LspAttach", {
@@ -87,14 +87,9 @@ return {
 			},
 		})
 
-		local on_attach = function(client, bufnr)
-			require("fidget").on_attach(client, bufnr)
-		end
-
 		local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
 		require("lspconfig").clangd.setup({
-			on_attach = on_attach,
 			capabilities = cmp_nvim_lsp.default_capabilities(),
 			cmd = {
 				"clangd",

@@ -67,7 +67,11 @@ vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50
 
 -- Show a different colored column at 120 characters
-vim.opt.colorcolumn = "120"
+vim.opt.colorcolumn = "80"
 
 -- Minimum number of screen lines to keep above and below the cursor
 vim.opt.scrolloff = 10
+vim.opt.sidescrolloff = 10
+
+-- Set the default language for spell checking
+vim.opt.spelllang = "en_us"
