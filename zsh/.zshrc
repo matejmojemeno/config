@@ -16,12 +16,13 @@ source ~/.config/zsh/aliases.zsh
 source ~/.config/zsh/plugins.zsh
 
 
-# Bindings
-bindkey "^H" backward-delete-word
+# Deleting and moving by whole words
+# HACK: Ctrl+Backspace sends Ctrl+b in Wezterm so it can work in neovim
+bindkey "^B" backward-delete-word
+# bindkey "^H" backward-delete-word
 local WORDCHARS=${WORDCHARS//[^a-zA-Z]/}
 bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
-bindkey "^N" fzf-cd-widget
 
 
 # History

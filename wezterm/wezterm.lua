@@ -8,12 +8,12 @@ if wezterm.config_builder then
 end
 
 -- Appearance
-config.color_scheme = "Dracula"
-config.font = wezterm.font("FiraCode Nerd Font Mono")
-config.font_size = 14.0
+config.color_scheme = "tokyonight"
+config.font = wezterm.font("JetBrains Mono")
+config.font_size = 15.0
 
-config.initial_cols = 1000
-config.initial_rows = 1000
+config.initial_cols = 300
+config.initial_rows = 300
 
 config.hide_tab_bar_if_only_one_tab = true
 
@@ -27,7 +27,6 @@ config.window_padding = {
 -- Functionality
 config.window_close_confirmation = "NeverPrompt"
 config.quit_when_all_windows_are_closed = false
-config.enable_kitty_graphics = true
 config.enable_wayland = true
 
 -- Keybindings
@@ -50,12 +49,15 @@ config.keys = {
 	{ key = "o", mods = "ALT", action = act.RotatePanes("Clockwise") },
 
 	-- We can make separate keybindings for resizing panes
-	-- But Wezterm offers custom "mode" in the name of "KeyTable"
+	-- But Weztljm offers custom "mode" in the name of "KeyTable"
 	{
 		key = "r",
-		mods = "LEADER",
+		mods = "ALT",
 		action = act.ActivateKeyTable({ name = "resize_pane", one_shot = false }),
 	},
+
+	{ key = "UpArrow", mods = "SHIFT", action = act.ScrollByLine(-1) },
+	{ key = "DownArrow", mods = "SHIFT", action = act.ScrollByLine(1) },
 
 	-- Tab keybindings
 	{ key = "t", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
@@ -90,9 +92,12 @@ config.keys = {
 		action = act.SwitchWorkspaceRelative(-1),
 	},
 
-	{ key = "q", mods = "CTRL", action = act.QuitApplication },
+	{ key = "Q", mods = "CTRL", action = act.QuitApplication },
 
 	{ key = "f", mods = "LEADER", action = act.ToggleFullScreen },
+
+	-- HACK: Send Ctrl-b to the terminal so Ctrl + Backspace can work in Neovim
+	{ key = "Backspace", mods = "CTRL", action = act.SendKey({ key = "b", mods = "CTRL" }) },
 }
 
 config.key_tables = {
@@ -175,17 +180,6 @@ wezterm.on("update-status", function(window, pane)
 		{ Text = "  " },
 	}))
 end)
-
---[[ Appearance setting for when I need to take pretty screenshots
-config.enable_tab_bar = false
-config.window_padding = {
-  left = '0.5cell',
-  right = '0.5cell',
-  top = '0.5cell',
-  bottom = '0cell',
-
-}
---]]
 
 wezterm.on("mux-is-process-stateful", function(proc)
 	_ = proc
