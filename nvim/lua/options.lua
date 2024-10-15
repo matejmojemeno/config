@@ -6,8 +6,8 @@ vim.g.maplocalleader = " "
 vim.opt.nu = true
 vim.opt.relativenumber = true
 
--- Mouse mode, can resize splits with mouse
-vim.opt.mouse = "a"
+-- Mouse mode, can resize splits with mouse, "a" means that it is available in all modes
+-- vim.opt.mouse = "a"
 
 -- Don't show current mode, because it is already in lualine
 vim.opt.showmode = false
@@ -75,3 +75,12 @@ vim.opt.sidescrolloff = 10
 
 -- Set the default language for spell checking
 vim.opt.spelllang = "en_us"
+
+-- Set obsidian conceal level
+vim.opt.conceallevel = 2
+
+-- ignore capitalization mistakes
+vim.cmd("ca W w")
+vim.cmd("ca Q q")
+vim.cmd("ca WQ wq")
+vim.cmd("ca Wq wq")

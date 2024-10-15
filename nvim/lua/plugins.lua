@@ -13,4 +13,5 @@ return {
 			require("colorizer").setup()
 		end,
 	},
+	"folke/twilight.nvim",
 }

@@ -1,19 +1,25 @@
 return {
-    "folke/zen-mode.nvim",
-    config = function()
-        vim.keymap.set("n", "<leader>zz", function()
-            require("zen-mode").setup {
-                window = {
-                    width = .80,
-                    options = { }
-                },
-            }
-            require("zen-mode").toggle()
-            vim.wo.wrap = false
-            vim.wo.number = true
-            vim.wo.rnu = true
-        end)
-    end
+	"folke/zen-mode.nvim",
+	opts = {
+		window = {
+			width = 0.8,
+
+			options = {
+				number = false,
+				relativenumber = false,
+				signcolumn = "no",
+			},
+		},
+		plugins = {
+			options = {
+				enabled = true,
+				ruler = true,
+				showcmd = true,
+			},
+			gitsigns = { enabled = false },
+			wezterm = { enabled = true, font = "+5" },
+			kitty = { enabled = true, font = "+5" },
+			twilight = { enabled = true },
+		},
+	},
 }
-
-

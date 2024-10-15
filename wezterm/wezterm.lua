@@ -1,6 +1,6 @@
 local wezterm = require("wezterm")
+local close_or_exit = require("close_or_exit")
 local act = wezterm.action
-
 local config = {}
 
 if wezterm.config_builder then
@@ -8,14 +8,16 @@ if wezterm.config_builder then
 end
 
 -- Appearance
-config.color_scheme = "tokyonight"
+config.color_scheme = "tokyonight_moon"
 config.font = wezterm.font("JetBrains Mono")
 config.font_size = 15.0
 
+-- Starts as full screen
 config.initial_cols = 300
 config.initial_rows = 300
 
 config.hide_tab_bar_if_only_one_tab = true
+config.window_decorations = "NONE"
 
 config.window_padding = {
 	left = 0,
@@ -29,6 +31,65 @@ config.window_close_confirmation = "NeverPrompt"
 config.quit_when_all_windows_are_closed = false
 config.enable_wayland = true
 
+-- ZenMode
+wezterm.on("user-var-changed", function(window, pane, name, value)
+	local overrides = window:get_config_overrides() or {}
+	if name == "ZEN_MODE" then
+		local incremental = value:find("+")
+		local number_value = tonumber(value)
+		if incremental ~= nil then
+			while number_value > 0 do
+				window:perform_action(wezterm.action.IncreaseFontSize, pane)
+				number_value = number_value - 1
+			end
+			overrides.enable_tab_bar = false
+		elseif number_value < 0 then
+			window:perform_action(wezterm.action.ResetFontSize, pane)
+			overrides.font_size = nil
+			overrides.enable_tab_bar = true
+		else
+			overrides.font_size = number_value
+			overrides.enable_tab_bar = false
+		end
+	end
+	window:set_config_overrides(overrides)
+end)
+
+-- Smart Splits
+-- if you are *NOT* lazy-loading smart-splits.nvim (recommended)
+local function is_vim(pane)
+	-- this is set by the plugin, and unset on ExitPre in Neovim
+	return pane:get_user_vars().IS_NVIM == "true"
+end
+
+local direction_keys = {
+	h = "Left",
+	j = "Down",
+	k = "Up",
+	l = "Right",
+}
+
+local function split_nav(resize_or_move, key)
+	return {
+		key = key,
+		mods = resize_or_move == "resize" and "META" or "CTRL",
+		action = wezterm.action_callback(function(win, pane)
+			if is_vim(pane) then
+				-- pass the keys through to vim/nvim
+				win:perform_action({
+					SendKey = { key = key, mods = resize_or_move == "resize" and "META" or "CTRL" },
+				}, pane)
+			else
+				if resize_or_move == "resize" then
+					win:perform_action({ AdjustPaneSize = { direction_keys[key], 3 } }, pane)
+				else
+					win:perform_action({ ActivatePaneDirection = direction_keys[key] }, pane)
+				end
+			end
+		end),
+	}
+end
+
 -- Keybindings
 config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
 config.keys = {
@@ -40,13 +101,26 @@ config.keys = {
 	-- Pane keybindings
 	{ key = "s", mods = "ALT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
 	{ key = "v", mods = "ALT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
-	{ key = "h", mods = "ALT", action = act.ActivatePaneDirection("Left") },
-	{ key = "j", mods = "ALT", action = act.ActivatePaneDirection("Down") },
-	{ key = "k", mods = "ALT", action = act.ActivatePaneDirection("Up") },
-	{ key = "l", mods = "ALT", action = act.ActivatePaneDirection("Right") },
+	{ key = "h", mods = "CTRL", action = act.ActivatePaneDirection("Left") },
+	{ key = "j", mods = "CTRL", action = act.ActivatePaneDirection("Down") },
+	{ key = "k", mods = "CTRL", action = act.ActivatePaneDirection("Up") },
+	{ key = "l", mods = "CTRL", action = act.ActivatePaneDirection("Right") },
 	{ key = "q", mods = "ALT", action = act.CloseCurrentPane({ confirm = true }) },
-	{ key = "z", mods = "ALT", action = act.TogglePaneZoomState },
+	{ key = "z", mods = "CTRL", action = act.TogglePaneZoomState },
 	{ key = "o", mods = "ALT", action = act.RotatePanes("Clockwise") },
+
+	{ key = "w", mods = "CTRL", action = wezterm.action_callback(close_or_exit.close_or_exit) },
+
+	-- move between split panes
+	split_nav("move", "h"),
+	split_nav("move", "j"),
+	split_nav("move", "k"),
+	split_nav("move", "l"),
+	-- resize panes
+	split_nav("resize", "h"),
+	split_nav("resize", "j"),
+	split_nav("resize", "k"),
+	split_nav("resize", "l"),
 
 	-- We can make separate keybindings for resizing panes
 	-- But Weztljm offers custom "mode" in the name of "KeyTable"
@@ -62,22 +136,6 @@ config.keys = {
 	-- Tab keybindings
 	{ key = "t", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
 	-- { key = "n", mods = "LEADER", action = act.ShowTabNavigator },
-	{
-		key = "e",
-		mods = "LEADER",
-		action = act.PromptInputLine({
-			description = wezterm.format({
-				{ Attribute = { Intensity = "Bold" } },
-				{ Foreground = { AnsiColor = "Fuchsia" } },
-				{ Text = "Renaming Tab Title...:" },
-			}),
-			action = wezterm.action_callback(function(window, pane, line)
-				if line then
-					window:active_tab():set_title(line)
-				end
-			end),
-		}),
-	},
 
 	-- Lastly, workspace
 	{ key = "Space", mods = "CTRL", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) },
@@ -110,89 +168,5 @@ config.key_tables = {
 		{ key = "Enter", action = "PopKeyTable" },
 	},
 }
-
--- Tab bar
--- I don't like the look of "fancy" tab bar
-config.use_fancy_tab_bar = false
-config.status_update_interval = 1000
-config.tab_bar_at_bottom = false
-wezterm.on("update-status", function(window, pane)
-	-- Workspace name
-	local stat = window:active_workspace()
-	local stat_color = "#f7768e"
-	-- It's a little silly to have workspace name all the time
-	-- Utilize this to display LDR or current key table name
-	if window:active_key_table() then
-		stat = window:active_key_table()
-		stat_color = "#7dcfff"
-	end
-	if window:leader_is_active() then
-		stat = "LDR"
-		stat_color = "#bb9af7"
-	end
-
-	local basename = function(s)
-		-- Nothing a little regex can't fix
-		return string.gsub(s, "(.*[/\\])(.*)", "%2")
-	end
-
-	-- Current working directory
-	local cwd = pane:get_current_working_dir()
-	if cwd then
-		if type(cwd) == "userdata" then
-			-- Wezterm introduced the URL object in 20240127-113634-bbcac864
-			cwd = basename(cwd.file_path)
-		else
-			-- 20230712-072601-f4abf8fd or earlier version
-			cwd = basename(cwd)
-		end
-	else
-		cwd = ""
-	end
-
-	-- Current command
-	local cmd = pane:get_foreground_process_name()
-	-- CWD and CMD could be nil (e.g. viewing log using Ctrl-Alt-l)
-	cmd = cmd and basename(cmd) or ""
-
-	-- Time
-	local time = wezterm.strftime("%H:%M")
-
-	-- Left status (left of the tab line)
-	window:set_left_status(wezterm.format({
-		{ Foreground = { Color = stat_color } },
-		{ Text = "  " },
-		{ Text = wezterm.nerdfonts.oct_table .. "  " .. stat },
-		{ Text = " |" },
-	}))
-
-	-- Right status
-	window:set_right_status(wezterm.format({
-		-- Wezterm has a built-in nerd fonts
-		-- https://wezfurlong.org/wezterm/config/lua/wezterm/nerdfonts.html
-		{ Text = wezterm.nerdfonts.md_folder .. "  " .. cwd },
-		{ Text = " | " },
-		{ Foreground = { Color = "#e0af68" } },
-		{ Text = wezterm.nerdfonts.fa_code .. "  " .. cmd },
-		"ResetAttributes",
-		{ Text = " | " },
-		{ Text = wezterm.nerdfonts.md_clock .. "  " .. time },
-		{ Text = "  " },
-	}))
-end)
-
-wezterm.on("mux-is-process-stateful", function(proc)
-	_ = proc
-	return nil
-end)
-
-wezterm.on("format-tab-title", function(tab)
-	local pane = tab.active_pane
-	local title = pane.title
-	if pane.domain_name then
-		title = title .. " - (" .. pane.domain_name .. ")"
-	end
-	return title
-end)
 
 return config

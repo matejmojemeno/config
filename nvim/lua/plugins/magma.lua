@@ -10,6 +10,7 @@ return {
 			vim.api.nvim_set_keymap("n", "<LocalLeader>rc", ":MagmaReevaluateCell<CR>", { silent = true })
 			vim.api.nvim_set_keymap("n", "<LocalLeader>rd", ":MagmaDelete<CR>", { silent = true })
 			vim.api.nvim_set_keymap("n", "<LocalLeader>ro", ":MagmaShowOutput<CR>", { silent = true })
+			vim.api.nvim_set_keymap("n", "<LocalLeader>rh", "Go<Esc>dd<c-o>", { silent = true })
 
 			vim.g.magma_automatically_open_output = false
 			vim.g.magma_image_provider = "kitty"
